@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#b9e5ff">
+  <title>DarkLand SMP</title>
+  <style>
+    :root {
+      --sky: #c7eaff;
+      --blue: #69bfff;
+      --deep: #153d60;
+      --glass: rgba(255,255,255,.43);
+      --line: rgba(255,255,255,.68);
+    }
+    * { box-sizing: border-box; }
+    html, body { cursor: url("darkland-cursor.png") 5 4, auto; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: var(--deep);
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(ellipse at 15% 15%, rgba(255,255,255,.95), transparent 35%),
+        radial-gradient(ellipse at 85% 80%, rgba(106,190,255,.42), transparent 38%),
+        linear-gradient(135deg, #e4f6ff 0%, #bfe5ff 48%, #d9f1ff 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 34px 18px 24px;
+    }
+    #particles {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .ambient {
+      position: fixed;
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      filter: blur(70px);
+      opacity: .35;
+      pointer-events: none;
+      z-index: 0;
+      animation: float 12s ease-in-out infinite alternate;
+      background: #80caff;
+    }
+    .ambient.one { top: -180px; left: -120px; }
+    .ambient.two { bottom: -220px; right: -120px; animation-delay: -5s; background: #fff; }
+    @keyframes float { to { transform: translate(80px, 55px) scale(1.18); } }
+
+    .page {
+      width: min(100%, 560px);
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      animation: pageIn .9s cubic-bezier(.2,.8,.2,1) both;
+    }
+    @keyframes pageIn { from { opacity: 0; transform: translateY(22px) scale(.98); } to { opacity: 1; transform: none; } }
+
+    .brand {
+      margin: 0 0 12px;
+      font-family: "Courier New", monospace;
+      font-size: clamp(3rem, 11vw, 5.7rem);
+      line-height: 1.05;
+      font-weight: 900;
+      letter-spacing: -5px;
+      background: linear-gradient(90deg, #ff4d8d, #8b5cff, #20bfff, #25d9a2, #ffca55, #ff4d8d);
+      background-size: 300% 300%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: rgbShift 7s ease infinite;
+      filter: drop-shadow(0 7px 15px rgba(68,150,220,.13));
+    }
+    @keyframes rgbShift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+
+    .subtitle {
+      margin: 0 auto 30px;
+      color: #47799e;
+      font-size: .92rem;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .panel {
+      padding: clamp(22px, 5vw, 34px);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: linear-gradient(145deg, rgba(255,255,255,.62), rgba(255,255,255,.24));
+      box-shadow: 0 22px 70px rgba(59,137,190,.17), inset 0 1px 0 rgba(255,255,255,.8);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    .buttons { display: grid; gap: 13px; }
+    .link-button {
+      position: relative;
+      isolation: isolate;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      width: 100%;
+      min-height: 65px;
+      padding: 0 21px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.96);
+      border-radius: 19px;
+      color: #174d76;
+      background:
+        linear-gradient(118deg, rgba(255,255,255,.82) 0%, rgba(255,255,255,.30) 22%, rgba(177,224,255,.38) 48%, rgba(255,255,255,.62) 74%, rgba(255,255,255,.32) 100%);
+      background-size: 220% 220%;
+      box-shadow:
+        0 12px 28px rgba(55,143,204,.18),
+        0 3px 8px rgba(255,255,255,.72) inset,
+        0 -2px 8px rgba(91,177,235,.13) inset,
+        0 0 0 1px rgba(255,255,255,.28);
+      backdrop-filter: blur(24px) saturate(185%);
+      -webkit-backdrop-filter: blur(24px) saturate(185%);
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: .015em;
+      cursor: url("darkland-cursor.png") 5 4, pointer;
+      transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .link-button::before {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      inset: -2px;
+      border-radius: inherit;
+      opacity: .72;
+      background: linear-gradient(112deg, transparent 10%, rgba(255,255,255,.92) 32%, rgba(255,255,255,.18) 48%, transparent 66%);
+      background-size: 230% 100%;
+      background-position: 150% 0;
+      transition: opacity .25s ease;
+      pointer-events: none;
+    }
+    .link-button::after {
+      content: "";
+      position: absolute;
+      inset: 1px;
+      border-radius: 17px;
+      pointer-events: none;
+      background:
+        linear-gradient(155deg, rgba(255,255,255,.56), transparent 34%),
+        radial-gradient(ellipse at 50% -35%, rgba(255,255,255,.85), transparent 62%);
+      opacity: .7;
+      z-index: -1;
+    }
+    .link-button:hover {
+      transform: translateY(-5px) scale(1.018);
+      border-color: rgba(255,255,255,1);
+      background-position: 100% 50%;
+      box-shadow:
+        0 18px 38px rgba(45,139,207,.25),
+        0 0 12px rgba(255,255,255,.95),
+        0 0 32px rgba(91,190,255,.62),
+        0 0 58px rgba(91,190,255,.28),
+        0 3px 10px rgba(255,255,255,.9) inset;
+    }
+    .link-button:hover::before {
+      opacity: 1;
+      animation: shine 1.05s ease-in-out infinite;
+    }
+    .link-button:hover::after { opacity: 1; }
+    .link-button:focus-visible {
+      outline: 3px solid rgba(67,164,235,.6);
+      outline-offset: 4px;
+    }
+    .link-button:active { transform: scale(.975); }
+    @keyframes shine {
+      0% { background-position: 150% 0; }
+      100% { background-position: -70% 0; }
+    }
+    .button-label { display: flex; align-items: center; gap: 13px; }
+    .icon {
+      width: 34px; height: 34px;
+      display: grid; place-items: center;
+      border-radius: 11px;
+      background: rgba(105,191,255,.2);
+      font-size: 1.1rem;
+    }
+    .arrow { font-size: 1.35rem; opacity: .55; transition: transform .25s ease, opacity .25s ease; }
+    .link-button:hover .arrow { transform: translateX(4px); opacity: 1; }
+
+    .footer {
+      display: inline-block;
+      margin-top: 25px;
+      font-family: "Courier New", monospace;
+      font-size: .82rem;
+      font-weight: 900;
+      letter-spacing: .14em;
+      background: linear-gradient(90deg, #ff4d8d, #8b5cff, #20bfff, #25d9a2, #ffca55, #ff4d8d);
+      background-size: 300% 300%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: rgbShift 7s ease infinite;
+      filter: drop-shadow(0 0 8px rgba(91,177,235,.28));
+    }
+
+    /* Five-second loading screen */
+    .loader {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #e7f7ff, #b9e3ff);
+      transition: opacity .65s ease, visibility .65s ease;
+    }
+    .loader.hidden { opacity: 0; visibility: hidden; }
+    .loader-box { width: min(340px, calc(100% - 50px)); text-align: center; }
+    .loader-title {
+      margin-bottom: 22px;
+      color: #367eaf;
+      font: 900 1.5rem "Courier New", monospace;
+      letter-spacing: .08em;
+    }
+    .loading-track {
+      height: 9px;
+      overflow: hidden;
+      border-radius: 20px;
+      background: rgba(66,139,190,.15);
+      box-shadow: inset 0 2px 5px rgba(37,105,151,.12);
+    }
+    .loading-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #6bbdff, #9ce6ff, #5daeff);
+      box-shadow: 0 0 18px rgba(72,173,255,.7);
+      animation: load 5s linear forwards;
+    }
+    @keyframes load { to { width: 100%; } }
+    .loading-text {
+      margin-top: 13px;
+      color: #5b8eaf;
+      font: 700 .72rem "Courier New", monospace;
+      letter-spacing: .18em;
+    }
+
+    /* Tap burst */
+    .burst {
+      position: fixed;
+      z-index: 20;
+      width: 12px; height: 12px;
+      border: 2px solid rgba(255,255,255,.95);
+      border-radius: 50%;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      animation: burst .72s ease-out forwards;
+      box-shadow: 0 0 18px rgba(76,177,255,.75);
+    }
+    @keyframes burst {
+      0% { opacity: .95; width: 8px; height: 8px; }
+      100% { opacity: 0; width: 170px; height: 170px; border-width: 1px; }
+    }
+    .spark {
+      position: fixed;
+      z-index: 21;
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 12px 3px #8bd5ff;
+      pointer-events: none;
+      animation: spark .65s ease-out forwards;
+    }
+    @keyframes spark {
+      to { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+    }
+    @media (max-width: 420px) {
+      body { padding-inline: 13px; }
+      .brand { letter-spacing: -3px; }
+      .link-button { min-height: 61px; padding-inline: 15px; }
+    }
+
+    .language-switch{display:flex;justify-content:flex-end;gap:4px;width:max-content;max-width:100%;margin:0 0 18px auto;padding:5px;border:1px solid rgba(255,255,255,.85);border-radius:14px;background:rgba(255,255,255,.45);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 5px 18px rgba(55,143,204,.14)}
+    body[dir="rtl"] .language-switch{margin:0 auto 18px 0}
+    .language-switch button{border:0;border-radius:10px;padding:7px 10px;background:transparent;color:#285f86;font-weight:800;cursor:pointer}
+    .language-switch button.active{background:rgba(255,255,255,.85);box-shadow:0 2px 8px rgba(55,143,204,.15)}
+    body[dir="rtl"] .product-card{text-align:right}
+    body[dir="rtl"] .link-button{direction:rtl}
+    body[dir="rtl"] .button-label{flex-direction:row}
+    body[dir="rtl"] .detail-back{direction:rtl}
+    .view{display:none}
+    .view.active{display:block;animation:pageIn .5s ease both}
+    .page{padding-bottom:100px}
+    .bottom-nav{position:fixed;z-index:8;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;gap:9px;width:min(310px,calc(100% - 36px));padding:8px;border:1px solid rgba(255,255,255,.9);border-radius:23px;background:linear-gradient(135deg,rgba(255,255,255,.76),rgba(190,229,255,.48));box-shadow:0 14px 38px rgba(42,126,184,.22),inset 0 2px 7px rgba(255,255,255,.9);backdrop-filter:blur(26px) saturate(190%);-webkit-backdrop-filter:blur(26px) saturate(190%)}
+    .nav-item{flex:1;min-height:48px;display:flex;align-items:center;justify-content:center;gap:9px;border:1px solid transparent;border-radius:16px;color:#47799e;background:transparent;font:800 .9rem Inter,"Segoe UI",Arial,sans-serif;cursor:pointer;transition:.25s}
+    .nav-item.active{color:#174d76;border-color:#fff;background:linear-gradient(120deg,rgba(255,255,255,.95),rgba(174,222,255,.68));box-shadow:0 5px 18px rgba(66,151,204,.18),inset 0 1px 4px #fff,0 0 18px rgba(113,195,255,.28)}
+    .nav-item:hover{transform:translateY(-2px)}
+    .shop-heading{margin:0 0 8px;color:#174d76;font:900 clamp(1.8rem,7vw,2.5rem) "Courier New",monospace}
+    .shop-description{margin:0 0 22px;color:#5485a7;font-size:.9rem}
+    .product-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    .product-card{overflow:hidden;text-align:left;border:1px solid rgba(255,255,255,.9);border-radius:19px;background:linear-gradient(145deg,rgba(255,255,255,.7),rgba(209,239,255,.38));box-shadow:0 10px 24px rgba(59,137,190,.13),inset 0 1px 0 rgba(255,255,255,.9)}
+    .product-image{display:block;width:100%;aspect-ratio:1;object-fit:cover;background:linear-gradient(135deg,rgba(255,255,255,.85),rgba(119,195,246,.3))}
+    .product-info{padding:12px}.product-name{margin:0;color:#174d76;font-weight:850;font-size:.92rem}.product-note{margin:5px 0 0;color:#648ba8;font-size:.76rem}
+    @media(max-width:420px){.product-grid{gap:10px}.product-info{padding:10px}}
+
+    .product-card{cursor:pointer;transition:transform .22s ease,box-shadow .22s ease}
+    .product-card:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(59,137,190,.2),inset 0 1px 0 rgba(255,255,255,.9)}
+    .detail-back{display:inline-flex;align-items:center;gap:8px;margin:0 0 16px;padding:10px 14px;border:1px solid rgba(255,255,255,.85);border-radius:14px;background:rgba(255,255,255,.58);color:#28648d;font-weight:800;cursor:pointer}
+    .detail-panel{overflow:hidden;padding:0}
+    .detail-image{display:block;width:100%;max-height:380px;aspect-ratio:1.15;object-fit:contain;background:linear-gradient(145deg,rgba(255,255,255,.9),rgba(191,229,251,.5));}
+    .detail-info{padding:20px}
+    .detail-title{margin:0 0 10px;color:#174d76;font:900 clamp(1.35rem,5vw,2rem) "Courier New",monospace}
+    .detail-description{margin:0;color:#5485a7;line-height:1.8}
+    .buy-bar{position:fixed;z-index:9;left:0;right:0;margin-inline:auto;bottom:calc(max(18px,env(safe-area-inset-bottom)) + 76px);width:min(310px,calc(100% - 36px));transform:none;display:none}
+    .buy-bar.visible{display:block;animation:pageIn .25s ease both}
+    .buy-price{margin:0 0 9px;text-align:center;padding:9px 12px;border:1px solid rgba(255,255,255,.85);border-radius:14px;background:rgba(235,249,255,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:#245f89;font-weight:900;font-size:1rem;box-shadow:0 5px 16px rgba(28,139,204,.12)}
+    .buy-button{width:100%;min-height:50px;border:1px solid rgba(255,255,255,.95);border-radius:17px;background:linear-gradient(120deg,#168bd0,#55c5f5);color:white;font-weight:900;font-size:1rem;box-shadow:0 9px 25px rgba(28,139,204,.3),inset 0 1px 2px rgba(255,255,255,.55);cursor:pointer}
+    @media(max-width:420px){.detail-info{padding:16px}.detail-image{max-height:320px}}
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  <div class="ambient one"></div>
+  <div class="ambient two"></div>
+
+  <div class="loader" id="loader">
+    <div class="loader-box">
+      <div class="loader-title">DARKLAND SMP</div>
+      <div class="loading-track"><div class="loading-fill"></div></div>
+      <div class="loading-text">INITIALIZING EXPERIENCE...</div>
+    </div>
+  </div>
+
+  <main class="page">
+    <section class="view active" id="homeView">
+      <div class="language-switch" aria-label="Language"><button type="button" id="langEN">EN</button><button type="button" id="langFA">فارسی</button></div>
+      <h1 class="brand">DarkLand SMP</h1>
+      <p class="subtitle">Your adventure starts here</p>
+      <section class="panel" aria-label="Server Links">
+        <div class="buttons">
+          <button class="link-button" data-link="OWNER_LINK"><span class="button-label"><span class="icon">♛</span>Owner's DM</span><span class="arrow">↗</span></button>
+          <button class="link-button" data-link="SERVER_CHANNEL_LINK"><span class="button-label"><span class="icon">▣</span>Server Channel</span><span class="arrow">↗</span></button>
+          <button class="link-button" data-link="SERVER_GROUP_LINK"><span class="button-label"><span class="icon">◎</span>Server Group</span><span class="arrow">↗</span></button>
+        </div>
+      </section>
+      <footer class="footer">Coded By MaMaLiX</footer>
+    </section>
+
+    <section class="view" id="shopView">
+      <h1 class="shop-heading">Shop</h1>
+      <p class="shop-description">Explore our server products</p>
+      <section class="panel" aria-label="Netherite Kits">
+        <h2 class="shop-heading">Netherite Kits</h2>
+        <div class="product-grid">
+          <!-- Replace image filenames and product text with your own Netherite kits. -->
+          <article class="product-card"><img class="product-image" src="product-1.jpg" alt="Netherite Kit 1"><div class="product-info"><h3 class="product-name">Netherite Kit 1</h3><p class="product-note">Add kit details here</p></div></article>
+          <article class="product-card"><img class="product-image" src="product-2.jpg" alt="Netherite Kit 2"><div class="product-info"><h3 class="product-name">Netherite Kit 2</h3><p class="product-note">Add kit details here</p></div></article>
+          <article class="product-card"><img class="product-image" src="product-3.jpg" alt="Netherite Kit 3"><div class="product-info"><h3 class="product-name">Netherite Kit 3</h3><p class="product-note">Add kit details here</p></div></article>
+          <article class="product-card"><img class="product-image" src="product-4.jpg" alt="Netherite Kit 4"><div class="product-info"><h3 class="product-name">Netherite Kit 4</h3><p class="product-note">Add kit details here</p></div></article>
+        </div>
+      </section>
+      <section class="panel" aria-label="Diamond Kits">
+        <h2 class="shop-heading">Diamond Kits</h2>
+        <div class="product-grid">
+          <!-- Replace image filenames and product text with your own Diamond kits. -->
+          <article class="product-card"><img class="product-image" src="product-5.jpg" alt="Diamond Kit 1"><div class="product-info"><h3 class="product-name">Diamond Kit 1</h3><p class="product-note">Add kit details here</p></div></article>
+          <article class="product-card"><img class="product-image" src="product-6.jpg" alt="Diamond Kit 2"><div class="product-info"><h3 class="product-name">Diamond Kit 2</h3><p class="product-note">Add kit details here</p></div></article>
+          <article class="product-card"><img class="product-image" src="product-7.jpg" alt="Diamond Kit 3"><div class="product-info"><h3 class="product-name">Diamond Kit 3</h3><p class="product-note">Add kit details here</p></div></article>
+          <article class="product-card"><img class="product-image" src="product-8.jpg" alt="Diamond Kit 4"><div class="product-info"><h3 class="product-name">Diamond Kit 4</h3><p class="product-note">Add kit details here</p></div></article>
+        </div>
+      </section>
+      <footer class="footer">Coded By MaMaLiX</footer>
+    </section>
+
+    <section class="view" id="detailView">
+      <button class="detail-back" id="detailBack" type="button">← Back to Shop</button>
+      <section class="panel detail-panel">
+        <img class="detail-image" id="detailImage" src="product-1.jpg" alt="Selected kit">
+        <div class="detail-info">
+          <h1 class="detail-title" id="detailTitle">Kit name</h1>
+          <p class="detail-description" id="detailDescription">Product details will appear here. Add the kit contents and other information in the product card.</p>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div class="buy-bar" id="buyBar">
+    <div class="buy-price" id="buyPrice">100,000 Toman</div>
+    <button class="buy-button" id="buyButton" type="button">Buy Now</button>
+  </div>
+
+  <nav class="bottom-nav" aria-label="Main navigation">
+    <button class="nav-item active" type="button" data-view="homeView"><span>⌂</span>Home</button>
+    <button class="nav-item" type="button" data-view="shopView"><span>◇</span>Shop</button>
+  </nav>
+
+  <script>
+    // Replace these three values with your own URLs.
+    const LINKS = {
+      OWNER_LINK: "https://rubika.ir/IRx0LEX",
+      SERVER_CHANNEL_LINK: "https://rubika.ir/DARKLANDSMP",
+      SERVER_GROUP_LINK: "https://rubika.ir/joing/BBIEDCACJ0VBCFIRUBSYVXERTKPKGYOY"
+    };
+
+    // Five-second intro loader.
+    window.addEventListener("load", () => {
+      setTimeout(() => document.getElementById("loader").classList.add("hidden"), 5000);
+    });
+
+    // Animated connected-particle background.
+    (() => {
+      const canvas = document.getElementById("particles");
+      const ctx = canvas.getContext("2d");
+      let width, height, particles = [];
+      const pointer = { x: -1000, y: -1000 };
+
+      function resize() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        width = window.innerWidth; height = window.innerHeight;
+        canvas.width = width * dpr; canvas.height = height * dpr;
+        canvas.style.width = width + "px"; canvas.style.height = height + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const count = Math.min(95, Math.max(38, Math.floor(width * height / 12500)));
+        particles = Array.from({ length: count }, () => ({
+          x: Math.random() * width, y: Math.random() * height,
+          vx: (Math.random() - .5) * .48, vy: (Math.random() - .5) * .48,
+          r: Math.random() * 2 + 1
+        }));
+      }
+      function animate() {
+        ctx.clearRect(0, 0, width, height);
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          const dx = pointer.x - p.x, dy = pointer.y - p.y;
+          const distanceToPointer = Math.hypot(dx, dy);
+          if (distanceToPointer < 125 && distanceToPointer > 0) {
+            p.vx -= dx / distanceToPointer * .008;
+            p.vy -= dy / distanceToPointer * .008;
+          }
+          p.x += p.vx; p.y += p.vy;
+          p.vx *= .999; p.vy *= .999;
+          if (p.x < -10 || p.x > width + 10) p.vx *= -1;
+          if (p.y < -10 || p.y > height + 10) p.vy *= -1;
+          p.x = Math.max(-10, Math.min(width + 10, p.x));
+          p.y = Math.max(-10, Math.min(height + 10, p.y));
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(255,255,255,.9)";
+          ctx.shadowBlur = 10; ctx.shadowColor = "rgba(83,177,235,.7)";
+          ctx.fill(); ctx.shadowBlur = 0;
+
+          for (let j = i + 1; j < particles.length; j++) {
+            const q = particles[j];
+            const d = Math.hypot(p.x - q.x, p.y - q.y);
+            if (d < 125) {
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y);
+              ctx.strokeStyle = `rgba(75,158,211,${(1 - d / 125) * .25})`;
+              ctx.lineWidth = .8; ctx.stroke();
+            }
+          }
+        }
+        requestAnimationFrame(animate);
+      }
+      window.addEventListener("resize", resize);
+      window.addEventListener("pointermove", e => { pointer.x = e.clientX; pointer.y = e.clientY; });
+      window.addEventListener("pointerleave", () => { pointer.x = -1000; pointer.y = -1000; });
+      resize(); animate();
+    })();
+
+    // Soft expanding tap halo and particles on every button press.
+    function createTapEffect(x, y) {
+      const ring = document.createElement("span");
+      ring.className = "burst";
+      ring.style.left = x + "px"; ring.style.top = y + "px";
+      document.body.appendChild(ring);
+      ring.addEventListener("animationend", () => ring.remove());
+
+      for (let i = 0; i < 12; i++) {
+        const spark = document.createElement("span");
+        const angle = Math.PI * 2 * i / 12 + Math.random() * .25;
+        const distance = 35 + Math.random() * 65;
+        spark.className = "spark";
+        spark.style.left = x + "px"; spark.style.top = y + "px";
+        spark.style.setProperty("--dx", Math.cos(angle) * distance + "px");
+        spark.style.setProperty("--dy", Math.sin(angle) * distance + "px");
+        document.body.appendChild(spark);
+        spark.addEventListener("animationend", () => spark.remove());
+      }
+    }
+
+    // Every click/tap anywhere on the page creates the same soft halo effect.
+    // The short sound is synthesized with Web Audio; no external audio file is needed.
+    let audioContext;
+    function playTapSound() {
+      try {
+        audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
+        if (audioContext.state === "suspended") audioContext.resume();
+
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        const now = audioContext.currentTime;
+
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(720, now);
+        oscillator.frequency.exponentialRampToValueAtTime(360, now + 0.055);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.12, now + 0.006);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.085);
+
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+        oscillator.start(now);
+        oscillator.stop(now + 0.09);
+      } catch (error) {
+        // Sound may be unavailable in browsers that do not support Web Audio.
+      }
+    }
+
+    // Show the same halo and spark burst for clicks anywhere on desktop,
+    // and taps anywhere on touch devices (not only on the buttons).
+    document.addEventListener("pointerdown", event => {
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      createTapEffect(event.clientX, event.clientY);
+      playTapSound();
+    }, { passive: true });
+
+
+    // Switch between Home and Shop without reloading the page.
+    function showView(viewId) {
+      document.querySelectorAll(".view").forEach(view => view.classList.toggle("active", view.id === viewId));
+      document.getElementById("buyBar").classList.toggle("visible", viewId === "detailView");
+      document.querySelectorAll(".nav-item").forEach(nav =>
+        nav.classList.toggle("active", nav.dataset.view === (viewId === "detailView" ? "shopView" : viewId))
+      );
+      window.scrollTo({top: 0, behavior: "smooth"});
+    }
+
+    document.querySelectorAll(".nav-item").forEach(item => {
+      item.addEventListener("click", () => showView(item.dataset.view));
+    });
+
+    // Open a Diginet-style product detail page for every kit card.
+    document.querySelectorAll(".product-card").forEach(card => {
+      card.setAttribute("role", "button");
+      card.setAttribute("tabindex", "0");
+      const openProduct = () => {
+        const image = card.querySelector(".product-image");
+        const title = card.querySelector(".product-name");
+        const note = card.querySelector(".product-note");
+        document.getElementById("detailImage").src = image.getAttribute("src");
+        document.getElementById("detailImage").alt = title.textContent;
+        document.getElementById("detailTitle").textContent = title.textContent;
+        document.getElementById("detailDescription").textContent = note.textContent;
+        showView("detailView");
+      };
+      card.addEventListener("click", openProduct);
+      card.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openProduct();
+        }
+      });
+    });
+
+    document.getElementById("detailBack").addEventListener("click", () => showView("shopView"));
+
+    // Buy button sends the customer to the server owner to place the order.
+    document.getElementById("buyButton").addEventListener("click", () => {
+      window.open(LINKS.OWNER_LINK, "_blank", "noopener,noreferrer");
+    });
+
+    document.querySelectorAll(".link-button").forEach(button => {
+      button.addEventListener("click", () => {
+        const key = button.dataset.link;
+        const url = LINKS[key];
+        if (url && !url.includes("example.com")) {
+          setTimeout(() => window.open(url, "_blank", "noopener,noreferrer"), 100);
+        } else {
+          console.info(`Add your URL in the LINKS object for: ${key}`);
+        }
+      });
+    });
+
+    // Site-wide English/Persian language switch.
+    const translations = {
+      en: {brand:'DarkLand SMP', subtitle:'Your adventure starts here', owner:'Owner\'s DM', channel:'Server Channel', group:'Server Group', coded:'Coded By MaMaLiX', shop:'Shop', shopDesc:'Explore our server products', netherite:'Netherite Kits', diamond:'Diamond Kits', kit1:'Netherite Kit 1',kit2:'Netherite Kit 2',kit3:'Netherite Kit 3',kit4:'Netherite Kit 4',dkit1:'Diamond Kit 1',dkit2:'Diamond Kit 2',dkit3:'Diamond Kit 3',dkit4:'Diamond Kit 4',details:'🎉 BUY 1, GET 2! BUY 2, GET 4! DOUBLE YOUR LOOT!',back:'← Back to Shop',detailDesc:'🎉 BUY 1, GET 2! BUY 2, GET 4! DOUBLE YOUR LOOT!',buy:'Buy Now',home:'Home',init:'INITIALIZING EXPERIENCE...'},
+      fa: {brand:'دارک‌لند SMP', subtitle:'ماجراجویی تو از اینجا شروع می‌شود', owner:'پیام به مدیر', channel:'کانال سرور', group:'گروه سرور', coded:'ساخته شده توسط MaMaLiX', shop:'فروشگاه', shopDesc:'محصولات سرور را ببینید', netherite:'کیت‌های ندرایت', diamond:'کیت‌های دایموند', kit1:'کیت ندرایت ۱',kit2:'کیت ندرایت ۲',kit3:'کیت ندرایت ۳',kit4:'کیت ندرایت ۴',dkit1:'کیت دایموند ۱',dkit2:'کیت دایموند ۲',dkit3:'کیت دایموند ۳',dkit4:'کیت دایموند ۴',details:'🎉 یکی بخر، دوتا بگیر! دوتا بخر، چهارتا بگیر! غنیمتت رو دو برابر کن!',back:'بازگشت به فروشگاه →',detailDesc:'🎉 یکی بخر، دوتا بگیر! دوتا بخر، چهارتا بگیر! غنیمتت رو دو برابر کن!',buy:'خرید',home:'خانه',init:'در حال آماده‌سازی...'}
+    };
+    let currentLang='en';
+    function setLanguage(lang){
+      currentLang=lang;
+      if(!translations[lang]) return;
+      try { localStorage.setItem('darkland-language', lang); } catch(e) {}
+      const t=translations[lang]; document.documentElement.lang=lang; document.documentElement.dir=lang==='fa'?'rtl':'ltr'; document.body.dir=lang==='fa'?'rtl':'ltr';
+      document.querySelector('.brand').textContent=t.brand; document.querySelector('.subtitle').textContent=t.subtitle;
+      const linkBtns=document.querySelectorAll('.link-button'); if(linkBtns[0]) linkBtns[0].querySelector('.button-label').lastChild.textContent=t.owner; if(linkBtns[1]) linkBtns[1].querySelector('.button-label').lastChild.textContent=t.channel; if(linkBtns[2]) linkBtns[2].querySelector('.button-label').lastChild.textContent=t.group;
+      document.querySelectorAll('.footer').forEach(el=>el.textContent=t.coded);
+      document.querySelectorAll('#shopView .shop-heading').forEach((el,i)=>el.textContent=i===0?t.shop:t.netherite); document.querySelector('#shopView .shop-description').textContent=t.shopDesc;
+      const headings=document.querySelectorAll('#shopView .panel .shop-heading'); if(headings[0])headings[0].textContent=t.netherite;if(headings[1])headings[1].textContent=t.diamond;
+      const names=[t.kit1,t.kit2,t.kit3,t.kit4,t.dkit1,t.dkit2,t.dkit3,t.dkit4];document.querySelectorAll('.product-name').forEach((el,i)=>el.textContent=names[i]||el.textContent);document.querySelectorAll('.product-note').forEach(el=>el.textContent=t.details);
+      document.getElementById('detailBack').textContent=t.back;document.getElementById('detailDescription').textContent=t.detailDesc;document.getElementById('buyButton').textContent=t.buy;document.querySelectorAll('.nav-item').forEach((el,i)=>{if(i===0)el.lastChild.textContent=t.home;else el.lastChild.textContent=t.shop});document.querySelector('.loading-text').textContent=t.init;
+      document.getElementById('langEN').classList.toggle('active',lang==='en');document.getElementById('langFA').classList.toggle('active',lang==='fa');
+    }
+    document.getElementById('langEN').addEventListener('click',()=>setLanguage('en'));document.getElementById('langFA').addEventListener('click',()=>setLanguage('fa'));
+    // Restore the saved language on startup (English by default).
+    let savedLanguage='en';
+    try { savedLanguage=localStorage.getItem('darkland-language') || 'en'; } catch(e) {}
+    setLanguage(savedLanguage);
+  </script>
+</body>
+</html>
